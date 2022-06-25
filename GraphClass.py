@@ -78,18 +78,6 @@ class Graph:
         if parent[i] == i:
             return i
         return self.find_subtree(parent, parent[i])
-
-    # Connects subtrees containing nodes `x` and `y`
-    def connect_subtrees(self, parent, subtree_sizes, x, y):
-        xroot = self.find_subtree(parent, x)
-        yroot = self.find_subtree(parent, y)
-        if subtree_sizes[xroot] < subtree_sizes[yroot]:
-            parent[xroot] = yroot
-        elif subtree_sizes[xroot] > subtree_sizes[yroot]:
-            parent[yroot] = xroot
-        else:
-            parent[yroot] = xroot
-            subtree_sizes[xroot] += 1
             
     def kruskals_mst(self):
         '''
@@ -97,6 +85,7 @@ class Graph:
 
         '''
         # Resulting tree
+        vertex_list = list(self.vertex)
         result = []
         
         # Iterator
@@ -112,25 +101,29 @@ class Graph:
         subtree_sizes = []
     
         # Initialize `parent` and `subtree_sizes` arrays
-        for node in range(len(self.vertex)):
+        for node in range(len(vertex_list)):
             parent.append(node)
             subtree_sizes.append(0)
     
         # Important property of MSTs
         # number of egdes in a MST is 
         # equal to (len(self.vertex) - 1)
-        while e < (len(self.vertex) - 1):
+        while e < (len(vertex_list) - 1):
             # Pick an edge with the minimal weight
-            node1, node2, weight = self.graph_list[i]
+            u, v, weight = self.graph_list[i]
             i = i + 1
-    
-            x = self.find_subtree(parent, node1)
-            y = self.find_subtree(parent, node2)
+            
+            u_index = vertex_list.index(u)
+            v_index = vertex_list.index(v)
+            # find the index(place) of parent nodes
+            x = self.find_subtree(parent, u_index)
+            y = self.find_subtree(parent, v_index)
     
             if x != y:
                 e = e + 1
-                result.append([node1, node2, weight])
-                self.connect_subtrees(parent, subtree_sizes, x, y)
+                result.append([u, v, weight])
+                # connect subtree
+                parent[y] = x
         
         # Print the resulting MST
         for node1, node2, weight in result:
@@ -141,73 +134,13 @@ class Graph:
         Time complexity: O(V^2)
 
         '''
-        matrix = self.create_matrix()
-        # Defining a really big number, that'll always be the highest weight in comparisons
-        postitive_inf = float('inf')
-    
-        # This is a list showing which nodes are already selected 
-        # so we don't pick the same node twice and we can actually know when stop looking
-        selected_nodes = [False for node in range(len(self.vertex))]
-    
-        # Matrix of the resulting MST
-        result = [[0 for column in range(len(self.vertex))] 
-                    for row in range(len(self.vertex))]
         
-        indx = 0
-        for i in range(len(self.vertex)):
-            print(matrix[i])
-        
-        print(selected_nodes)
-    
-        # While there are nodes that are not included in the MST, keep looking:
-        while(False in selected_nodes):
-            # We use the big number we created before as the possible minimum weight
-            minimum = float('inf')
-    
-            # The starting node
-            start = 0
-    
-            # The ending node
-            end = 0
-    
-            for i in range(len(self.vertex)):
-                # If the node is part of the MST, look its relationships
-                if selected_nodes[i]:
-                    for j in range(len(self.vertex)):
-                        # If the analyzed node have a path to the ending node AND its not included in the MST (to avoid cycles)
-                        if (not selected_nodes[j] and matrix[i][j]>0):  
-                            # If the weight path analized is less than the minimum of the MST
-                            if matrix[i][j] < minimum:
-                                # Defines the new minimum weight, the starting vertex and the ending vertex
-                                minimum = matrix[i][j]
-                                start, end = i, j
-            
-            # Since we added the ending vertex to the MST, it's already selected:
-            selected_nodes[end] = True
-    
-            # Filling the MST Adjacency Matrix fields:
-            result[start][end] = minimum
-            
-            if minimum == float('inf'):
-                result[start][end] = 0
-    
-            print("(%d.) %d - %d: %d" % (indx, start, end, result[start][end]))
-            indx += 1
-            
-            result[end][start] = result[start][end]
-    
-        # Print the resulting MST
-        # for node1, node2, weight in result:
-        for i in range(len(result)):
-            for j in range(0+i, len(result)):
-                if result[i][j] != 0:
-                    print("%d - %d: %d" % (i, j, result[i][j]))
         
 # Create a graph G        
-G = Graph([[0,1,6],[0,2,2],[2,1,1],[2,3,7],[1,3,1]])
+G = Graph([[0,1,6],[0,2,2],[2,1,1],[2,3,7],[1,3,1],[0,3,1]])
 
 # Dijkstra
 shortest_path = G.Dijkstra(0)
 print(shortest_path)
 G.kruskals_mst()
-G.prims_mst()
+#G.prims_mst()
